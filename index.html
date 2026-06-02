@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Treinamento Ajustes de FC | Estante Mágica</title>
+<style>
+
+:root{
+  --roxo:#6B4EFF;
+  --roxo-claro:#EFEAFF;
+  --roxo-escuro:#4A33B8;
+  --amarelo:#FFD54A;
+  --rosa:#FF6B9D;
+  --verde:#22C55E;
+  --vermelho:#EF4444;
+  --laranja:#F59E0B;
+  --cinza-100:#F5F5F7;
+  --cinza-200:#E5E5EA;
+  --cinza-400:#9CA3AF;
+  --cinza-700:#374151;
+  --cinza-900:#111827;
+  --branco:#FFFFFF;
+  --sombra:0 4px 24px rgba(107,78,255,0.08);
+  --sombra-hover:0 8px 32px rgba(107,78,255,0.16);
+  --radius:16px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  background:var(--cinza-100);
+  color:var(--cinza-900);
+  line-height:1.6;
+  min-height:100vh;
+}
+.layout{display:grid;grid-template-columns:280px 1fr;min-height:100vh}
+
+/* SIDEBAR */
+.sidebar{
+  background:var(--branco);
+  border-right:1px solid var(--cinza-200);
+  padding:24px 16px;
+  position:sticky;top:0;height:100vh;overflow-y:auto;
+}
+.logo{display:flex;align-items:center;gap:10px;padding:0 8px 24px;border-bottom:1px solid var(--cinza-200);margin-bottom:16px}
+.logo-icon{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--roxo),var(--rosa));display:flex;align-items:center;justify-content:center;color:white;font-weight:700}
+.logo h2{font-size:15px;color:var(--cinza-900)}
+.logo p{font-size:11px;color:var(--cinza-400);text-transform:uppercase;letter-spacing:0.5px}
+.nav-section{margin-bottom:24px}
+.nav-title{font-size:11px;text-transform:uppercase;letter-spacing:0.8px;color:var(--cinza-400);padding:0 12px;margin-bottom:8px;font-weight:600}
+.nav-item{
+  display:flex;align-items:center;gap:12px;
+  padding:10px 12px;border-radius:10px;
+  color:var(--cinza-700);text-decoration:none;font-size:14px;
+  cursor:pointer;transition:all .2s;
+  margin-bottom:2px;
+}
+.nav-item:hover{background:var(--roxo-claro);color:var(--roxo)}
+.nav-item.active{background:var(--roxo);color:white}
+.nav-item .num{
+  width:22px;height:22px;border-radius:6px;
+  background:var(--cinza-100);
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:600;
+}
+.nav-item.active .num{background:rgba(255,255,255,0.25)}
+.progress-mini{padding:12px;background:var(--roxo-claro);border-radius:12px;margin-top:16px}
+.progress-mini-label{font-size:12px;color:var(--roxo-escuro);font-weight:600;margin-bottom:6px}
+.progress-bar{height:6px;background:white;border-radius:99px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--roxo),var(--rosa));width:0;transition:width .4s}
+.progress-text{font-size:11px;color:var(--roxo-escuro);margin-top:4px}
+
+/* MAIN */
+.main{padding:40px 56px;max-width:1100px}
+.module{display:none;animation:fadeIn .3s}
+.module.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+.module-header{margin-bottom:32px}
+.module-tag{
+  display:inline-block;padding:4px 10px;
+  background:var(--roxo-claro);color:var(--roxo);
+  font-size:11px;font-weight:600;text-transform:uppercase;
+  letter-spacing:0.5px;border-radius:99px;margin-bottom:12px;
+}
+.module h1{font-size:32px;font-weight:700;letter-spacing:-0.5px;margin-bottom:8px}
+.module-subtitle{font-size:16px;color:var(--cinza-400)}
+
+.card{
+  background:var(--branco);
+  border-radius:var(--radius);
+  padding:28px;
+  box-shadow:var(--sombra);
+  margin-bottom:20px;
+}
+.card h2{font-size:20px;margin-bottom:12px;display:flex;align-items:center;gap:10px}
+.card h3{font-size:16px;margin:16px 0 8px;color:var(--cinza-700)}
+.card p{color:var(--cinza-700);margin-bottom:12px}
+.card .icon{font-size:24px}
+
+.info-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:16px}
+.info-box{
+  padding:20px;border-radius:12px;
+  background:var(--cinza-100);
+  border-left:4px solid var(--roxo);
+}
+.info-box h4{font-size:13px;text-transform:uppercase;letter-spacing:0.5px;color:var(--cinza-400);margin-bottom:6px}
+.info-box p{margin:0;color:var(--cinza-900);font-weight:500}
+
+.pill{display:inline-block;padding:4px 12px;border-radius:99px;font-size:12px;font-weight:600}
+.pill-verde{background:#DCFCE7;color:#166534}
+.pill-amarelo{background:#FEF3C7;color:#92400E}
+.pill-vermelho{background:#FEE2E2;color:#991B1B}
+.pill-roxo{background:var(--roxo-claro);color:var(--roxo-escuro)}
+
+/* CHECKLIST */
+.check-block{margin-bottom:24px}
+.check-block-title{font-weight:600;font-size:15px;margin-bottom:10px;color:var(--cinza-900);display:flex;align-items:center;gap:8px}
+.check-item{
+  display:flex;align-items:flex-start;gap:12px;
+  padding:10px 14px;border-radius:10px;
+  margin-bottom:6px;cursor:pointer;
+  transition:background .15s;
+}
+.check-item:hover{background:var(--cinza-100)}
+.check-item input[type=checkbox]{
+  appearance:none;-webkit-appearance:none;
+  width:20px;height:20px;border:2px solid var(--cinza-200);
+  border-radius:6px;cursor:pointer;flex-shrink:0;
+  position:relative;margin-top:1px;transition:all .15s;
+}
+.check-item input[type=checkbox]:checked{background:var(--roxo);border-color:var(--roxo)}
+.check-item input[type=checkbox]:checked::after{
+  content:"✓";color:white;font-size:13px;font-weight:700;
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+}
+.check-item input[type=checkbox]:checked ~ .check-label{text-decoration:line-through;color:var(--cinza-400)}
+.check-label{font-size:14px;color:var(--cinza-700);flex:1}
+
+/* TIMELINE / CADENCIA */
+.timeline{display:flex;flex-direction:column;gap:0;margin:24px 0}
+.timeline-day{
+  display:grid;grid-template-columns:120px 1fr;gap:24px;
+  padding:20px 0;border-bottom:1px solid var(--cinza-200);
+  position:relative;
+}
+.timeline-day:last-child{border-bottom:none}
+.timeline-marker{display:flex;flex-direction:column;align-items:center;gap:8px}
+.day-badge{
+  width:80px;padding:12px 0;border-radius:12px;
+  background:var(--roxo);color:white;
+  text-align:center;font-weight:700;
+}
+.day-badge.urgent{background:linear-gradient(135deg,var(--vermelho),var(--rosa))}
+.day-badge.warning{background:linear-gradient(135deg,var(--laranja),var(--amarelo));color:var(--cinza-900)}
+.day-badge.go{background:linear-gradient(135deg,var(--verde),#10B981)}
+.day-badge .big{font-size:24px;line-height:1;display:block}
+.day-badge .small{font-size:10px;text-transform:uppercase;letter-spacing:0.5px;opacity:0.9}
+.day-content h4{font-size:16px;margin-bottom:8px}
+.day-actions{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.action-line{
+  display:flex;align-items:flex-start;gap:8px;
+  font-size:13px;color:var(--cinza-700);
+}
+.action-line::before{content:"→";color:var(--roxo);font-weight:700}
+.day-tag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:99px;background:var(--roxo-claro);color:var(--roxo-escuro);margin-left:8px;font-weight:600}
+
+/* TABS */
+.tabs{display:flex;gap:4px;background:var(--cinza-100);padding:4px;border-radius:12px;margin-bottom:20px;flex-wrap:wrap}
+.tab{
+  padding:10px 16px;border-radius:8px;cursor:pointer;
+  font-size:13px;font-weight:600;color:var(--cinza-400);
+  transition:all .15s;border:none;background:transparent;flex:1;text-align:center;min-width:120px;
+}
+.tab:hover{color:var(--roxo)}
+.tab.active{background:white;color:var(--roxo);box-shadow:0 2px 6px rgba(0,0,0,0.04)}
+.tab-content{display:none}
+.tab-content.active{display:block}
+
+/* DISCURSO BOX */
+.speech-box{
+  background:linear-gradient(135deg,#FAFAFF,#F5F0FF);
+  border:1px solid var(--roxo-claro);
+  border-radius:12px;padding:20px;margin:12px 0;
+  position:relative;
+}
+.speech-box::before{
+  content:"💬";position:absolute;top:-12px;left:20px;
+  background:white;padding:4px 8px;border-radius:99px;
+  font-size:16px;border:1px solid var(--roxo-claro);
+}
+.speech-box p{margin-bottom:10px;color:var(--cinza-900);line-height:1.7}
+.speech-box em{background:var(--amarelo);padding:1px 5px;border-radius:4px;font-style:normal;font-weight:600}
+
+.alert{
+  display:flex;gap:12px;padding:14px 16px;border-radius:10px;
+  font-size:13px;margin:12px 0;align-items:flex-start;
+}
+.alert-warning{background:#FFFBEB;border-left:4px solid var(--amarelo);color:#92400E}
+.alert-info{background:#EFF6FF;border-left:4px solid #3B82F6;color:#1E40AF}
+.alert-danger{background:#FEF2F2;border-left:4px solid var(--vermelho);color:#991B1B}
+.alert-success{background:#F0FDF4;border-left:4px solid var(--verde);color:#166534}
+.alert .icon{font-size:18px;flex-shrink:0}
+
+/* TEMPLATES (WhatsApp / Email) */
+.template-card{
+  background:var(--branco);border:1px solid var(--cinza-200);
+  border-radius:12px;padding:20px;margin-bottom:16px;
+  transition:box-shadow .2s;
+}
+.template-card:hover{box-shadow:var(--sombra)}
+.template-header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px;flex-wrap:wrap}
+.template-name{font-weight:700;font-size:14px}
+.template-code{font-family:"SF Mono",Monaco,monospace;font-size:11px;color:var(--cinza-400);background:var(--cinza-100);padding:2px 8px;border-radius:6px;display:inline-block;margin-top:4px}
+.template-body{
+  background:#F5F5F7;border-radius:10px;padding:14px;
+  font-size:13px;color:var(--cinza-900);white-space:pre-wrap;
+  font-family:-apple-system,sans-serif;line-height:1.6;
+  max-height:200px;overflow-y:auto;
+  border-left:3px solid #25D366;
+}
+.template-body.email{border-left-color:#3B82F6}
+.template-actions{display:flex;gap:8px;margin-top:12px}
+.btn{
+  padding:8px 14px;border-radius:8px;border:none;
+  font-size:12px;font-weight:600;cursor:pointer;
+  display:inline-flex;align-items:center;gap:6px;
+  transition:all .15s;
+}
+.btn-primary{background:var(--roxo);color:white}
+.btn-primary:hover{background:var(--roxo-escuro)}
+.btn-ghost{background:var(--cinza-100);color:var(--cinza-700)}
+.btn-ghost:hover{background:var(--cinza-200)}
+.btn.copied{background:var(--verde);color:white}
+
+/* QUIZ */
+.quiz-q{margin-bottom:20px;padding:20px;background:var(--cinza-100);border-radius:12px}
+.quiz-q-title{font-weight:600;margin-bottom:12px;font-size:15px}
+.quiz-q-num{display:inline-block;background:var(--roxo);color:white;padding:2px 8px;border-radius:6px;font-size:12px;margin-right:8px}
+.quiz-opt{
+  display:flex;align-items:center;gap:10px;
+  padding:12px 14px;background:white;
+  border:2px solid transparent;border-radius:10px;
+  cursor:pointer;margin-bottom:6px;
+  transition:all .15s;font-size:14px;
+}
+.quiz-opt:hover{border-color:var(--roxo-claro)}
+.quiz-opt.selected{border-color:var(--roxo);background:var(--roxo-claro)}
+.quiz-opt.correct{border-color:var(--verde);background:#F0FDF4}
+.quiz-opt.wrong{border-color:var(--vermelho);background:#FEF2F2}
+.quiz-feedback{padding:12px;border-radius:10px;font-size:13px;margin-top:10px;display:none}
+.quiz-feedback.show{display:block}
+.quiz-feedback.correct{background:#F0FDF4;color:#166534}
+.quiz-feedback.wrong{background:#FEF2F2;color:#991B1B}
+
+/* SCENARIO SIMULATOR */
+.scenario{padding:24px;background:linear-gradient(135deg,#FFF,var(--roxo-claro));border-radius:16px;border:1px solid var(--roxo-claro)}
+.scenario-context{font-size:15px;line-height:1.7;margin-bottom:20px;padding:16px;background:white;border-radius:10px;border-left:4px solid var(--rosa)}
+.scenario-choice{
+  display:block;width:100%;text-align:left;
+  padding:14px 16px;background:white;border:2px solid var(--cinza-200);
+  border-radius:10px;margin-bottom:8px;cursor:pointer;
+  font-size:14px;color:var(--cinza-900);
+  transition:all .15s;
+}
+.scenario-choice:hover{border-color:var(--roxo);transform:translateX(4px)}
+.scenario-result{margin-top:16px;padding:16px;border-radius:10px;display:none}
+.scenario-result.show{display:block;animation:fadeIn .3s}
+
+/* FLASHCARDS */
+.flashcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px;margin-top:16px}
+.flashcard{
+  background:linear-gradient(135deg,var(--roxo),var(--roxo-escuro));
+  color:white;border-radius:14px;padding:20px;
+  min-height:160px;cursor:pointer;
+  display:flex;flex-direction:column;justify-content:space-between;
+  transition:transform .25s,box-shadow .25s;
+  position:relative;overflow:hidden;
+}
+.flashcard:hover{transform:translateY(-4px);box-shadow:var(--sombra-hover)}
+.flashcard.flipped{background:linear-gradient(135deg,var(--rosa),var(--laranja))}
+.flashcard-side{display:block}
+.flashcard.flipped .flashcard-front{display:none}
+.flashcard:not(.flipped) .flashcard-back{display:none}
+.flashcard-front{font-size:16px;font-weight:600;line-height:1.4}
+.flashcard-back{font-size:13px;line-height:1.5}
+.flashcard-tag{font-size:10px;text-transform:uppercase;letter-spacing:1px;opacity:0.7;margin-bottom:8px;font-weight:700}
+.flashcard-hint{font-size:11px;opacity:0.7;margin-top:auto}
+
+/* CALL TO COMPLETE */
+.cta-complete{
+  background:linear-gradient(135deg,var(--roxo),var(--rosa));
+  color:white;padding:32px;border-radius:16px;text-align:center;
+  margin-top:24px;
+}
+.cta-complete h3{font-size:22px;margin-bottom:8px}
+.cta-complete p{color:rgba(255,255,255,0.9);margin-bottom:16px}
+.btn-white{background:white;color:var(--roxo);padding:12px 24px;font-size:14px;border:none;border-radius:10px;font-weight:700;cursor:pointer}
+
+.stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin:16px 0}
+.stat{background:var(--cinza-100);padding:14px;border-radius:12px}
+.stat-num{font-size:22px;font-weight:700;color:var(--roxo)}
+.stat-label{font-size:12px;color:var(--cinza-400);text-transform:uppercase;letter-spacing:0.5px}
+
+/* FOOTER NAV */
+.module-footer{
+  display:grid;grid-template-columns:1fr 1fr;gap:12px;
+  margin-top:40px;padding-top:24px;border-top:1px solid var(--cinza-200);
+}
+.nav-btn{
+  display:flex;align-items:center;gap:14px;padding:16px 20px;
+  background:var(--branco);border:1px solid var(--cinza-200);
+  border-radius:14px;cursor:pointer;text-align:left;
+  transition:all .2s;font-family:inherit;color:var(--cinza-900);
+  min-height:72px;
+}
+.nav-btn:hover:not(:disabled){border-color:var(--roxo);box-shadow:var(--sombra);transform:translateY(-2px)}
+.nav-btn:disabled{opacity:0.4;cursor:not-allowed}
+.nav-btn-arrow{
+  width:36px;height:36px;border-radius:10px;
+  background:var(--roxo-claro);color:var(--roxo);
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;font-weight:700;flex-shrink:0;
+}
+.nav-btn-next{justify-content:flex-end;text-align:right}
+.nav-btn-next .nav-btn-arrow{background:var(--roxo);color:white;order:2}
+.nav-btn-info{flex:1;display:flex;flex-direction:column;gap:2px;overflow:hidden}
+.nav-btn-label{font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:var(--cinza-400);font-weight:600}
+.nav-btn-title{font-size:14px;font-weight:600;color:var(--cinza-900);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.module-progress-pill{
+  display:flex;justify-content:center;align-items:center;gap:8px;
+  margin-top:20px;color:var(--cinza-400);font-size:12px;
+}
+.module-progress-pill .dot{width:6px;height:6px;border-radius:50%;background:var(--cinza-200);transition:all .2s}
+.module-progress-pill .dot.active{background:var(--roxo);transform:scale(1.5)}
+.module-progress-pill .dot.done{background:var(--roxo-claro)}
+
+@media (max-width:600px){
+  .module-footer{grid-template-columns:1fr}
+}
+
+/* RESPONSIVE */
+@media (max-width:900px){
+  .layout{grid-template-columns:1fr}
+  .sidebar{position:relative;height:auto;width:100%}
+  .main{padding:24px}
+  .info-grid{grid-template-columns:1fr}
+  .timeline-day{grid-template-columns:1fr;gap:8px}
+}
+
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-icon"><img src="logo_EM.png" alt="EM" style="width:100%;height:100%;object-fit:contain;border-radius:8px;background:#fff" onerror="this.replaceWith(document.createTextNode('📚'))"></div>
+      <div>
+        <h2>Ajustes de FC</h2>
+        <p>Ajuste estratégico de prazos</p>
+      </div>
+    </div>
+    <nav>
+      <div class="nav-section">
+      <div class="nav-title">Conteúdo</div>
+      <div class="nav-item active" data-target="m-intro"><span class="num">0</span> Boas-vindas</div>
+      <div class="nav-item" data-target="m-1"><span class="num">1</span> Por que ajustar prazos</div>
+      <div class="nav-item" data-target="m-2"><span class="num">2</span> Os 5 prazos</div>
+      <div class="nav-item" data-target="m-3"><span class="num">3</span> O EA comanda tudo</div>
+      <div class="nav-item" data-target="m-4"><span class="num">4</span> Onde e como ajustar</div>
+      <div class="nav-item" data-target="m-5"><span class="num">5</span> 6 alinhamentos</div>
+      <div class="nav-item" data-target="m-6"><span class="num">6</span> Como comunicar</div>
+      <div class="nav-item" data-target="m-7"><span class="num">7</span> 4 cenários práticos</div>
+      </div>
+      <div class="nav-section">
+      <div class="nav-title">Fixação</div>
+      <div class="nav-item" data-target="m-flash"><span class="num">★</span> Flashcards</div>
+      <div class="nav-item" data-target="m-sim"><span class="num">★</span> Simulador de cenários</div>
+      <div class="nav-item" data-target="m-quiz"><span class="num">★</span> Quiz final</div>
+      </div>
+      <div class="nav-section">
+      <div class="nav-title">Mural do encontro</div>
+      <a class="nav-item" href="participante.html"><span class="num">📝</span> Responder (participante)</a>
+      <a class="nav-item" href="telao.html"><span class="num">📺</span> Telão ao vivo</a>
+      </div>
+    </nav>
+    <div class="progress-mini">
+      <div class="progress-mini-label">Seu progresso</div>
+      <div class="progress-bar"><div class="progress-fill" id="prog"></div></div>
+      <div class="progress-text" id="progText">0 de 11 módulos</div>
+    </div>
+  </aside>
+  <main class="main" id="main">
+
+<section class="module active" id="m-intro">
+  <div class="module-header">
+    <span class="module-tag">Boas-vindas</span>
+    <h1>Treinamento Ajustes de FC</h1>
+    <p class="module-subtitle">Ajustar prazos é negociar — não só mover datas.</p>
+  </div>
+  <div class="card">
+    <h2><span class="icon">🎯</span> Por que esse treinamento existe</h2>
+    <p>Um bom resultado de vendas vem do engajamento das famílias feito por Relacionamento. O <strong>ajuste de prazos</strong> é a ferramenta aliada: usado de forma estratégica e personalizada, gera senso de urgência e abre janelas de conversão. Mal usado, queima a confiança da escola e não move o ponteiro.</p>
+    <div class="info-grid">
+      <div class="info-box"><h4>O que você vai treinar</h4><p>Quando, quanto e como ajustar cada prazo</p></div>
+      <div class="info-box"><h4>Prazos com gordura</h4><p>EM e FC — até 2 dias antes do EG</p></div>
+      <div class="info-box"><h4>Princípio central</h4><p>Prazo aumentado só vale se for aproveitado</p></div>
+      <div class="info-box"><h4>Para quem</h4><p>Consultores de Sucesso na gestão da aplicação</p></div>
+    </div>
+  </div>
+  <div class="card">
+    <h2><span class="icon">🗺️</span> Como navegar</h2>
+    <p>São 7 módulos de conteúdo + 3 ferramentas de fixação. Percorra em ordem ou pule para o tema que precisa revisar. Use as setas ← → do teclado para avançar.</p>
+    <div class="stat-row">
+      <div class="stat"><div class="stat-num">7</div><div class="stat-label">Módulos</div></div>
+      <div class="stat"><div class="stat-num">3</div><div class="stat-label">Ferramentas</div></div>
+      <div class="stat"><div class="stat-num">4</div><div class="stat-label">Cenários práticos</div></div>
+      <div class="stat"><div class="stat-num">5</div><div class="stat-label">Prazos da jornada</div></div>
+    </div>
+    <div class="alert alert-info"><span class="icon">💡</span><div><strong>Dica:</strong> ao abrir cada módulo, ele marca como visto. Use os <strong>Flashcards</strong> e o <strong>Simulador</strong> para fixar antes de fechar.</div></div>
+  </div>
+  <div class="card" style="background:linear-gradient(135deg,var(--roxo),var(--roxo-escuro));color:white">
+    <h3 style="color:white">Pronto para começar?</h3>
+    <p style="color:#EFEAFF">Comece pelo Módulo 1 ou pule para o tema que precisa revisar.</p>
+    <button class="btn-white" onclick="goTo('m-1')">Começar agora →</button>
+  </div>
+</section>
+
+<section class="module" id="m-1">
+  <div class="module-header">
+    <span class="module-tag">Módulo 1</span>
+    <h1>Por que ajustar prazos</h1>
+    <p class="module-subtitle">A lógica estratégica por trás de cada extensão.</p>
+  </div>
+  <div class="card">
+    <h2><span class="icon">⚙️</span> O ajuste é uma alavanca, não um favor</h2>
+    <p>Respeitando o limite do EG, os prazos podem ser ajustados mais de uma vez, com autonomia do consultor, direto na Rachel. O ideal é que a escola esteja de acordo — mas dá para aumentar mesmo sem efetividade, deixando aviso em todos os canais.</p>
+    <h3>O que justifica um aumento de prazo? <span class="pill pill-roxo">Tudo</span></h3>
+    <p>Cenários negativos <em>e</em> positivos. O aumento ajuda a finalizar envio de materiais, engajar quem deixou a compra para a última hora, rodar uma nova campanha numa escola que está comprando bem, ou ganhar tempo para confirmar dados até o EG.</p>
+    <div class="alert alert-warning"><span class="icon">⚠️</span><div><strong>A regra de ouro:</strong> um prazo aumentado precisa ser <strong>aproveitado</strong>. De nada adianta deixar uma data aberta sem avisar as famílias ou sem combinar com a escola o que fazer com o tempo extra.</div></div>
+  </div>
+  <div class="card">
+    <h2><span class="icon">📣</span> Ajustou? Comunique</h2>
+    <p>Sempre que ajustar um prazo, avise a escola sobre a nova data e deixe um recadinho pronto para facilitar a comunicação em cima da hora. O ajuste sem comunicação é tempo desperdiçado.</p>
+  </div>
+</section>
+
+<section class="module" id="m-2">
+  <div class="module-header">
+    <span class="module-tag">Módulo 2</span>
+    <h1>Os 5 prazos da jornada</h1>
+    <p class="module-subtitle">Quem define, para que serve e quais têm gordura para ajuste.</p>
+  </div>
+  <div class="card">
+    <h2><span class="icon">📅</span> Mapa dos prazos</h2>
+    <p>Quatro são automáticos na plataforma (Logística Supply). Dois têm <strong>gordura</strong> — esticam até 2 dias antes do EG. Esse é o seu campo de jogo.</p>
+
+    <div class="check-block"><div class="check-block-title">Início da criação das histórias <span class="pill pill-vermelho">Sem gordura</span></div>
+    <p>Define: <strong>escola</strong>. Sinaliza quando a escola vai começar a aplicação em sala. Atraso aqui acende alerta de engajamento e retenção, e ajuda a avaliar o tempo viável até o EG.</p></div>
+
+    <div class="check-block"><div class="check-block-title">EA / DA — Evento de Autógrafos <span class="pill pill-vermelho">Sem gordura</span></div>
+    <p>Define: <strong>escola</strong>. Data-âncora: dela saem os outros 3 prazos. Indispensável para Relacionamento, Supply e o cronograma da escola. Livros chegam até 5 dias antes do EA.</p></div>
+
+    <div class="check-block"><div class="check-block-title">EM — Data limite para envio de materiais <span class="pill pill-amarelo">Tem gordura</span></div>
+    <p>Auto · Supply. Último dia para enviar/editar histórias e ilustrações. Precisa ser ≥ dia atual para a escola conseguir enviar. <strong>Pode ser aumentado até 2 dias antes do EG.</strong></p></div>
+
+    <div class="check-block"><div class="check-block-title">FC — Data limite de compras <span class="pill pill-amarelo">Tem gordura</span></div>
+    <p>Auto · Supply. Último dia para famílias/escola comprarem livros e kits. Precisa ser ≥ dia atual para novas compras antes do EA. <strong>Pode ser aumentado até 2 dias antes do EG.</strong></p></div>
+
+    <div class="check-block"><div class="check-block-title">EG — Data do envio para gráfica <span class="pill pill-roxo">Interno</span></div>
+    <p>Auto · Supply. <strong>Prazo interno — nunca compartilhamos com a escola.</strong> É a data do "OK para produção" na Rachel. Trava novas compras e edições. Edições pós-EG só com a liderança.</p></div>
+
+    <div class="alert alert-info"><span class="icon">🧈</span><div><strong>A gordura mora entre o FC/EM e o EG.</strong> Toda extensão sai desse intervalo — por isso usamos com intenção, nunca de uma vez só.</div></div>
+  </div>
+</section>
+
+<section class="module" id="m-3">
+  <div class="module-header">
+    <span class="module-tag">Módulo 3</span>
+    <h1>O EA comanda tudo</h1>
+    <p class="module-subtitle">Quatro regras do Evento de Autógrafos que não se esquece.</p>
+  </div>
+  <div class="card">
+    <h2><span class="icon">⭐</span> Pontos importantes sobre o EA</h2>
+    <div class="info-grid">
+      <div class="info-box"><h4>1 · Janela</h4><p>Pode ser definido até 31/12 do ano da jornada.</p></div>
+      <div class="info-box"><h4>2 · Antecipar x adiar</h4><p>Ninguém antecipa sozinho — exige acionar o Supply. Adiar, a escola pode (até antes do EG).</p></div>
+      <div class="info-box"><h4>3 · Entrega</h4><p>É a referência de entrega: livros chegam até 5 dias antes do EA.</p></div>
+      <div class="info-box"><h4>4 · Efeito cascata</h4><p>Mexeu no EA? Revise e formalize todos os outros prazos com a escola. Sempre.</p></div>
+    </div>
+    <div class="alert alert-danger"><span class="icon">🔗</span><div>Qualquer ajuste no EA torna <strong>obrigatório</strong> revisar os demais prazos. Não dá para mover a âncora e deixar o resto à deriva.</div></div>
+  </div>
+</section>
+
+<section class="module" id="m-4">
+  <div class="module-header">
+    <span class="module-tag">Módulo 4</span>
+    <h1>Onde e como ajustar</h1>
+    <p class="module-subtitle">O caminho na plataforma e a regra dos pequenos blocos.</p>
+  </div>
+  <div class="card">
+    <h2><span class="icon">🛠️</span> Onde administrar as datas</h2>
+    <p>A escola adia o evento direto no menu <strong>Prazos</strong> da escola (até antes do EG). Pela equipe interna, o ajuste é na <strong>One Page</strong>:</p>
+    <div class="timeline">
+      <div class="timeline-day"><div class="timeline-marker"><div class="day-badge"><span class="big">1</span><span class="small">One Page</span></div></div><div class="day-content"><div class="day-actions"><p>No quadro <strong>ESCOLA</strong>, clique no ícone de calendário <em>"Definir prazos de projetos"</em>.</p></div></div></div>
+      <div class="timeline-day"><div class="timeline-marker"><div class="day-badge"><span class="big">2</span><span class="small">Simular</span></div></div><div class="day-content"><div class="day-actions"><p>Na página que abre, edite e simule as novas datas.</p></div></div></div>
+      <div class="timeline-day"><div class="timeline-marker"><div class="day-badge go"><span class="big">3</span><span class="small">Salvar</span></div></div><div class="day-content"><div class="day-actions"><p>Clique em <strong>Salvar informações</strong>. Pronto.</p></div></div></div>
+    </div>
+  </div>
+  <div class="card">
+    <h2><span class="icon">🧱</span> Ajuste em pequenos blocos</h2>
+    <p>Alargar o prazo completo de uma vez <strong>não gera senso de urgência</strong> nem compromisso. Negocie em blocos curtos, lembrando que a escola precisa de algumas horas para se organizar e comunicar a extensão.</p>
+    <div class="alert alert-success"><span class="icon">✅</span><div>Pequenos blocos + comunicação a cada passo = a escola usa o tempo de verdade.</div></div>
+  </div>
+</section>
+
+<section class="module" id="m-5">
+  <div class="module-header">
+    <span class="module-tag">Módulo 5</span>
+    <h1>Os 6 alinhamentos do ajuste</h1>
+    <p class="module-subtitle">Os princípios que orientam toda decisão de prazo.</p>
+  </div>
+  <div class="card">
+    <div class="check-block"><div class="check-block-title">1 · Compre a briga da escola</div><p>Imprevistos acontecem. Busque a solução com mínimo impacto no EA — mas dê transparência sobre riscos de produção e entrega.</p></div>
+    <div class="check-block"><div class="check-block-title">2 · EM pelo menos 1 semana antes do FC</div><p>Empilhar materiais + compras + confirmações sobrecarrega a gestora e derruba o resultado. Isole os momentos.</p></div>
+    <div class="check-block"><div class="check-block-title">3 · Prazo apertado = produção emergencial</div><p>Menos tempo de gráfica e transporte gera custo. Ajustamos a favor da escola até o limite que não comprometa entrega nem estoure o custo logístico.</p></div>
+    <div class="check-block"><div class="check-block-title">4 · Negocie em pequenos blocos</div><p>Alargar tudo de uma vez não cria urgência. Blocos curtos, com tempo para a escola se organizar.</p></div>
+    <div class="check-block"><div class="check-block-title">5 · Produção só no dia do EG</div><p>Mesmo com tudo pronto. Antecipar não acelera entrega — a logística é desenhada para o EG, e a gordura protege contra imprevistos de última hora.</p></div>
+    <div class="check-block"><div class="check-block-title">6 · Não tenha medo do ajuste</div><p>95% das escolas o veem como um presente. Comunique sempre, com recadinho pronto, em todos os canais.</p></div>
+  </div>
+</section>
+
+<section class="module" id="m-6">
+  <div class="module-header">
+    <span class="module-tag">Módulo 6</span>
+    <h1>Como comunicar o ajuste</h1>
+    <p class="module-subtitle">O tom certo transforma uma extensão em boa notícia.</p>
+  </div>
+  <div class="card">
+    <h2><span class="icon">🙂</span> Nos resultados ruins</h2>
+    <div class="speech-box"><p>"Márcia, vi que nosso último recadinho sobre compras não surtiu tanto efeito. Vejo de pertinho o seu empenho e separei boas notícias: consegui mais <em>X dias</em> de compras com o time logístico e preparei uma trilha de comunicação para uma última campanha!"</p></div>
+    <div class="speech-box"><p>"Márcia, você acha que mais tempo te ajudaria na finalização dos materiais? Me adiantei e já conversei com o time logístico. Temos mais <em>X dias</em> para você finalizar o envio com calma e depois focamos só nas compras pendentes!"</p></div>
+  </div>
+  <div class="card">
+    <h2><span class="icon">🎉</span> Nos resultados positivos</h2>
+    <div class="speech-box"><p>"Márcia, que trabalho lindo vocês estão fazendo! Faltam só 2 crianças sem o livro para o evento. Falei com o time logístico que não poderíamos deixar essas 2 de fora e consegui mais <em>X dias</em>! Como te ajudo a falar com as famílias?"</p></div>
+    <div class="speech-box"><p>"Márcia, essa noite de autógrafos vai ser um espetáculo! Acho que vovós, vovôs e outros familiares não vão querer perder esse dia. Consegui mais <em>X dias</em> para uma comunicação voltada para eles. O que acha?"</p></div>
+  </div>
+</section>
+
+<section class="module" id="m-7">
+  <div class="module-header">
+    <span class="module-tag">Módulo 7</span>
+    <h1>4 cenários práticos</h1>
+    <p class="module-subtitle">Diagnóstico e movimento para as situações mais comuns.</p>
+  </div>
+  <div class="card">
+    <h2><span class="icon">1️⃣</span> Materiais completos, compras muito baixas — 1 semana do FC</h2>
+    <p><strong>Diagnóstico:</strong> falta engajamento de compra, não tempo.</p>
+    <div class="alert alert-success"><span class="icon">🎯</span><div><strong>Movimento:</strong> plano de engajamento de 5 dias com a gestora — comunicados diários, relatório de alunos sem compra, acompanhar a curva. Faltando 2 dias, avaliar +2/+3 dias após o FC original.</div></div>
+  </div>
+  <div class="card">
+    <h2><span class="icon">2️⃣</span> Último dia de material; finalizou, compras &lt;50% — 25 dias do EG</h2>
+    <p><strong>Diagnóstico:</strong> há bastante gordura. Isolar "enviar material" de "engajar compra".</p>
+    <div class="alert alert-success"><span class="icon">🎯</span><div><strong>Movimento:</strong> avaliar +4 dias para envio de material e distanciar o FC em ~1 semana do novo EM. Guardar o resto da gordura como carta na manga se as compras estagnarem.</div></div>
+  </div>
+  <div class="card">
+    <h2><span class="icon">3️⃣</span> Materiais e compras prontos, dados fiscais não confirmados — EG em 5 dias</h2>
+    <p><strong>Diagnóstico:</strong> pendência sem impacto logístico — pura confirmação.</p>
+    <div class="alert alert-success"><span class="icon">🎯</span><div><strong>Movimento:</strong> estender o EG dentro da gordura, <strong>1 dia por vez</strong>, gerando urgência e acionando todos os canais até conseguir os dados.</div></div>
+  </div>
+  <div class="card">
+    <h2><span class="icon">4️⃣</span> 10 dias do EG; engajou do zero e o último dia de FC acumulou pedidos</h2>
+    <p><strong>Diagnóstico:</strong> curva positiva — momento de surfar, não de parar.</p>
+    <div class="alert alert-success"><span class="icon">🎯</span><div><strong>Movimento:</strong> dar visibilidade à gestora sobre o salto, avaliar o que moveu o ponteiro, esticar +3/4 dias e ficar próximo para nova comunicação pós-extensão.</div></div>
+  </div>
+</section>
+
+<section class="module" id="m-flash">
+  <div class="module-header"><span class="module-tag">Fixação</span><h1>Flashcards</h1><p class="module-subtitle">Clique em cada card para virar e revelar a resposta.</p></div>
+  <div class="card"><h2><span class="icon">🧠</span> Conceitos-chave dos Ajustes de FC</h2><p>Vire o card e teste seu conhecimento.</p>
+  <div class="flashcards"><div class="flashcard" onclick="this.classList.toggle('flipped')">
+  <div class="flashcard-side flashcard-front"><div class="flashcard-tag">Pergunta</div><div>Quais prazos têm gordura para ajuste?</div><div class="flashcard-hint">Clique para ver →</div></div>
+  <div class="flashcard-side flashcard-back"><div class="flashcard-tag">Resposta</div><div>EM (envio de materiais) e FC (compras) — esticáveis até 2 dias antes do EG.</div></div>
+</div>
+<div class="flashcard" onclick="this.classList.toggle('flipped')">
+  <div class="flashcard-side flashcard-front"><div class="flashcard-tag">Pergunta</div><div>Até quando EM e FC podem ser esticados?</div><div class="flashcard-hint">Clique para ver →</div></div>
+  <div class="flashcard-side flashcard-back"><div class="flashcard-tag">Resposta</div><div>Até 2 dias antes do EG.</div></div>
+</div>
+<div class="flashcard" onclick="this.classList.toggle('flipped')">
+  <div class="flashcard-side flashcard-front"><div class="flashcard-tag">Pergunta</div><div>O EG pode ser compartilhado com a escola?</div><div class="flashcard-hint">Clique para ver →</div></div>
+  <div class="flashcard-side flashcard-back"><div class="flashcard-tag">Resposta</div><div>Não. É prazo interno (envio para gráfica). À escola comunicamos EA, EM e FC.</div></div>
+</div>
+<div class="flashcard" onclick="this.classList.toggle('flipped')">
+  <div class="flashcard-side flashcard-front"><div class="flashcard-tag">Pergunta</div><div>Quem pode antecipar o EA?</div><div class="flashcard-hint">Clique para ver →</div></div>
+  <div class="flashcard-side flashcard-back"><div class="flashcard-tag">Resposta</div><div>Ninguém sozinho — exige acionar o Supply. A escola pode adiar (até antes do EG).</div></div>
+</div>
+<div class="flashcard" onclick="this.classList.toggle('flipped')">
+  <div class="flashcard-side flashcard-front"><div class="flashcard-tag">Pergunta</div><div>Quando os livros vão para produção?</div><div class="flashcard-hint">Clique para ver →</div></div>
+  <div class="flashcard-side flashcard-back"><div class="flashcard-tag">Resposta</div><div>Só no dia do EG, mesmo com tudo pronto. Antecipar não acelera a entrega.</div></div>
+</div>
+<div class="flashcard" onclick="this.classList.toggle('flipped')">
+  <div class="flashcard-side flashcard-front"><div class="flashcard-tag">Pergunta</div><div>Por que ajustar em pequenos blocos?</div><div class="flashcard-hint">Clique para ver →</div></div>
+  <div class="flashcard-side flashcard-back"><div class="flashcard-tag">Resposta</div><div>Alargar tudo de uma vez não gera senso de urgência nem compromisso.</div></div>
+</div>
+<div class="flashcard" onclick="this.classList.toggle('flipped')">
+  <div class="flashcard-side flashcard-front"><div class="flashcard-tag">Pergunta</div><div>Mexeu no EA — e agora?</div><div class="flashcard-hint">Clique para ver →</div></div>
+  <div class="flashcard-side flashcard-back"><div class="flashcard-tag">Resposta</div><div>Revise e formalize todos os outros prazos com a escola. Obrigatório.</div></div>
+</div>
+<div class="flashcard" onclick="this.classList.toggle('flipped')">
+  <div class="flashcard-side flashcard-front"><div class="flashcard-tag">Pergunta</div><div>Distância mínima entre EM e FC?</div><div class="flashcard-hint">Clique para ver →</div></div>
+  <div class="flashcard-side flashcard-back"><div class="flashcard-tag">Resposta</div><div>Mantenha o EM pelo menos 1 semana antes do FC para não sobrecarregar a gestora.</div></div>
+</div></div></div>
+</section>
+
+<section class="module" id="m-sim">
+  <div class="module-header"><span class="module-tag">Fixação</span><h1>Simulador de cenários</h1><p class="module-subtitle">Pratique decisões reais. Escolha a melhor ação.</p></div>
+  <div class="card"><h2><span class="icon">🎮</span> Cenário 1 — compras baixas a 1 semana do FC</h2>
+    <div class="scenario">
+      <div class="scenario-context"><strong>Contexto:</strong> a escola tem materiais completos, mas as compras estão muito baixas e falta 1 semana para o FC.</div>
+      <button class="scenario-choice" onclick="showResult(this,'wrong','Esticar +10 de uma vez mata a urgência e a escola não aproveita o tempo.','r1')">A) Esticar o FC em +10 dias agora e avisar que há tempo de sobra</button>
+      <button class="scenario-choice" onclick="showResult(this,'correct','Engajamento primeiro, extensão curta como reforço perto do fim. Pequenos blocos geram urgência.','r1')">B) Plano de engajamento de 5 dias; faltando 2, avaliar +2/+3 dias</button>
+      <button class="scenario-choice" onclick="showResult(this,'wrong','Não fazer nada desperdiça a ferramenta. O ajuste existe para isso.','r1')">C) Não mexer — se não compraram, é problema da escola</button>
+      <div class="scenario-result" id="r1"></div>
+    </div>
+  </div>
+  <div class="card"><h2><span class="icon">🎮</span> Cenário 2 — dados fiscais pendentes, EG em 5 dias</h2>
+    <div class="scenario">
+      <div class="scenario-context"><strong>Contexto:</strong> materiais e compras prontos, mas não conseguimos confirmar os dados fiscais. O EG é em 5 dias.</div>
+      <button class="scenario-choice" onclick="showResult(this,'correct','Pendência sem impacto logístico: estenda o EG dentro da gordura, 1 dia por vez, com urgência.','r2')">A) Estender o EG dentro da gordura, 1 dia por vez</button>
+      <button class="scenario-choice" onclick="showResult(this,'wrong','Gastar toda a gordura de uma vez tira o senso de urgência e some com a margem de segurança.','r2')">B) Esticar o EG até o limite máximo de uma vez</button>
+      <button class="scenario-choice" onclick="showResult(this,'wrong','Sem dados fiscais não dá para enviar para produção com segurança.','r2')">C) Enviar para produção assim mesmo</button>
+      <div class="scenario-result" id="r2"></div>
+    </div>
+  </div>
+  <div class="card"><h2><span class="icon">🎮</span> Cenário 3 — curva de compras subindo, EG em 10 dias</h2>
+    <div class="scenario">
+      <div class="scenario-context"><strong>Contexto:</strong> a escola acumulou muitos pedidos no último dia do FC, com a curva subindo. EG em 10 dias.</div>
+      <button class="scenario-choice" onclick="showResult(this,'wrong','Parar agora desperdiça uma curva positiva — é hora de dar mais uma janela.','r3')">A) Deixar como está — já tem pedido suficiente</button>
+      <button class="scenario-choice" onclick="showResult(this,'correct','Curva positiva é janela: mostre o salto à gestora, +3/4 dias e combine nova comunicação.','r3')">B) Visibilidade à gestora, +3/4 dias de FC e nova comunicação</button>
+      <button class="scenario-choice" onclick="showResult(this,'wrong','Esticar até o limite do EG queima toda a gordura sem necessidade.','r3')">C) Esticar até o limite do EG para garantir o máximo</button>
+      <div class="scenario-result" id="r3"></div>
+    </div>
+  </div>
+</section>
+
+<section class="module" id="m-quiz">
+  <div class="module-header"><span class="module-tag">Fixação</span><h1>Quiz final</h1><p class="module-subtitle">Teste o que aprendeu. Sem pressão — tente quantas vezes quiser.</p></div>
+  <div class="card"><h2><span class="icon">📝</span> 8 perguntas</h2><div id="quiz"></div>
+  <button class="btn-white" style="background:var(--roxo);color:#fff;margin-top:16px" onclick="checkQuiz()">Conferir respostas</button>
+  <p id="quizScore" style="font-weight:700;margin-top:16px;font-size:16px"></p></div>
+</section>
+
+  </main>
+</div>
+<script>
+
+// ========== NAVEGAÇÃO ==========
+const navItems = document.querySelectorAll('.nav-item[data-target]');
+const modules = document.querySelectorAll('.module');
+const visited = new Set();
+const TOTAL = navItems.length;
+
+// Lista ordenada [{id, label}] a partir do menu lateral
+const ORDER = Array.from(navItems).map(n=>({
+  id: n.dataset.target,
+  label: n.textContent.replace(/^\s*[\d★]+\s*/,'').trim()
+}));
+
+function goTo(id){
+  modules.forEach(m=>m.classList.remove('active'));
+  navItems.forEach(n=>n.classList.remove('active'));
+  const target = document.getElementById(id);
+  if(target) target.classList.add('active');
+  const nav = document.querySelector(`.nav-item[data-target="${id}"]`);
+  if(nav) nav.classList.add('active');
+  visited.add(id);
+  updateProgress();
+  updateFooterDots(id);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+navItems.forEach(n=>n.addEventListener('click',()=>goTo(n.dataset.target)));
+
+function updateProgress(){
+  const pct = Math.round((visited.size/TOTAL)*100);
+  document.getElementById('prog').style.width = pct + '%';
+  document.getElementById('progText').textContent = `${visited.size} de ${TOTAL} módulos`;
+}
+visited.add('m-intro');
+updateProgress();
+
+// ========== INJETAR FOOTER NAV EM CADA MÓDULO ==========
+modules.forEach((mod, idx)=>{
+  const prev = idx>0 ? ORDER[idx-1] : null;
+  const next = idx<ORDER.length-1 ? ORDER[idx+1] : null;
+  const footer = document.createElement('div');
+  footer.className='module-footer';
+  footer.innerHTML = `
+    ${prev ? `
+      <button class="nav-btn" onclick="goTo('${prev.id}')">
+        <div class="nav-btn-arrow">←</div>
+        <div class="nav-btn-info">
+          <div class="nav-btn-label">Anterior</div>
+          <div class="nav-btn-title">${prev.label}</div>
+        </div>
+      </button>` : `
+      <button class="nav-btn" disabled>
+        <div class="nav-btn-arrow">←</div>
+        <div class="nav-btn-info">
+          <div class="nav-btn-label">Início</div>
+          <div class="nav-btn-title">Você está no começo</div>
+        </div>
+      </button>`}
+    ${next ? `
+      <button class="nav-btn nav-btn-next" onclick="goTo('${next.id}')">
+        <div class="nav-btn-info">
+          <div class="nav-btn-label">Próximo</div>
+          <div class="nav-btn-title">${next.label}</div>
+        </div>
+        <div class="nav-btn-arrow">→</div>
+      </button>` : `
+      <button class="nav-btn nav-btn-next" disabled>
+        <div class="nav-btn-info">
+          <div class="nav-btn-label">Fim</div>
+          <div class="nav-btn-title">Treinamento concluído 🎉</div>
+        </div>
+        <div class="nav-btn-arrow">✓</div>
+      </button>`}
+  `;
+  // Pílula de progresso (pontos)
+  const pill = document.createElement('div');
+  pill.className='module-progress-pill';
+  pill.innerHTML = `<span>Módulo ${idx+1} de ${TOTAL}</span>` +
+    ORDER.map((_,i)=>`<span class="dot${i===idx?' active':(i<idx?' done':'')}"></span>`).join('');
+  mod.appendChild(footer);
+  mod.appendChild(pill);
+});
+
+function updateFooterDots(currentId){
+  const currentIdx = ORDER.findIndex(o=>o.id===currentId);
+  document.querySelectorAll('.module-progress-pill').forEach((pill, modIdx)=>{
+    // Só atualiza visual do módulo atual; outros mantêm seu próprio estado
+    if(modIdx===currentIdx){
+      const dots = pill.querySelectorAll('.dot');
+      dots.forEach((d,i)=>{
+        d.classList.remove('active','done');
+        if(i===currentIdx) d.classList.add('active');
+        else if(i<currentIdx) d.classList.add('done');
+      });
+    }
+  });
+}
+
+// Atalhos de teclado: ← →
+document.addEventListener('keydown',(e)=>{
+  if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA') return;
+  const current = document.querySelector('.module.active');
+  if(!current) return;
+  const idx = ORDER.findIndex(o=>o.id===current.id);
+  if(e.key==='ArrowRight' && idx<ORDER.length-1) goTo(ORDER[idx+1].id);
+  if(e.key==='ArrowLeft' && idx>0) goTo(ORDER[idx-1].id);
+});
+
+// ========== TABS ==========
+document.querySelectorAll('.tab').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const card = btn.closest('.module');
+    card.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    card.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+    btn.classList.add('active');
+    const tc = card.querySelector('#'+btn.dataset.tab);
+    if(tc) tc.classList.add('active');
+  });
+});
+
+// ========== COPY TO CLIPBOARD ==========
+function copyText(id, btn){
+  const txt = document.getElementById(id).innerText;
+  navigator.clipboard.writeText(txt).then(()=>{
+    const original = btn.innerHTML;
+    btn.innerHTML = '✓ Copiado!';
+    btn.classList.add('copied');
+    setTimeout(()=>{btn.innerHTML=original;btn.classList.remove('copied')},1800);
+  }).catch(()=>{
+    // fallback
+    const ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);
+    ta.select();document.execCommand('copy');document.body.removeChild(ta);
+    btn.innerHTML='✓ Copiado!';btn.classList.add('copied');
+    setTimeout(()=>{btn.innerHTML='📋 Copiar';btn.classList.remove('copied')},1800);
+  });
+}
+
+// ========== BUSCA DE TEMPLATES ==========
+const search = document.getElementById('searchTpl');
+if(search){
+  search.addEventListener('input',e=>{
+    const q = e.target.value.toLowerCase().trim();
+    document.querySelectorAll('#tplList .template-card').forEach(card=>{
+      const data = (card.dataset.search||'') + ' ' + card.textContent.toLowerCase();
+      card.style.display = data.includes(q) ? '' : 'none';
+    });
+  });
+}
+
+// ========== SIMULADOR DE CENÁRIOS ==========
+function showResult(btn, status, msg, resultId){
+  const scenario = btn.closest('.scenario');
+  const result = resultId ? document.getElementById(resultId) : scenario.querySelector('#r1');
+  scenario.querySelectorAll('.scenario-choice').forEach(c=>{c.disabled=true;c.style.opacity=.6});
+  btn.style.opacity=1;
+  if(status==='correct'){
+    btn.style.borderColor='var(--verde)';btn.style.background='#F0FDF4';
+    result.style.background='#F0FDF4';result.style.color='#166534';
+    result.innerHTML = '<strong>✅ Boa escolha!</strong> ' + msg;
+  } else {
+    btn.style.borderColor='var(--vermelho)';btn.style.background='#FEF2F2';
+    result.style.background='#FEF2F2';result.style.color='#991B1B';
+    result.innerHTML = '<strong>❌ Não é o melhor caminho.</strong> ' + msg;
+  }
+  result.classList.add('show');
+}
+
+
+// ========== QUIZ ==========
+
+const QUIZ = [
+  {q:'Quais prazos têm gordura para ajuste?', opts:['EA e EG','EM e FC','Início da criação e EA','Todos'], correct:1},
+  {q:'Até quando EM e FC podem ser esticados?', opts:['Até o dia do EA','Até 2 dias antes do EG','Sem limite','Até o D-1 do EA'], correct:1},
+  {q:'O EG pode ser compartilhado com a escola?', opts:['Sim, é a data de entrega','Não, é prazo interno','Só se a escola pedir','Apenas com a gestora'], correct:1},
+  {q:'Quem pode antecipar o EA?', opts:['O consultor sozinho','A escola sozinha','Ninguém sozinho — via Supply','Qualquer um'], correct:2},
+  {q:'Quando os livros vão para produção?', opts:['Quando a escola termina','Só no dia do EG','2 dias antes do EG','No EA'], correct:1},
+  {q:'Por que negociar em pequenos blocos?', opts:['É mais rápido','Gera senso de urgência e compromisso','Exigência do Supply','Reduz custo'], correct:1},
+  {q:'Mexeu no EA — o que é obrigatório?', opts:['Avisar o Supply apenas','Revisar e formalizar os demais prazos','Nada','Cancelar a produção'], correct:1},
+  {q:'Distância ideal entre EM e FC?', opts:['No mesmo dia','EM ao menos 1 semana antes do FC','FC antes do EM','Não importa'], correct:1}
+];
+const quizDiv = document.getElementById('quiz');
+if(quizDiv){
+  QUIZ.forEach((item, idx)=>{
+    const block=document.createElement('div');block.className='quiz-q';
+    block.innerHTML=`<div class="quiz-q-title"><span class="quiz-q-num">${idx+1}</span>${item.q}</div>`;
+    item.opts.forEach((opt,i)=>{const o=document.createElement('div');o.className='quiz-opt';o.dataset.idx=i;o.textContent=opt;
+      o.addEventListener('click',()=>{block.querySelectorAll('.quiz-opt').forEach(x=>x.classList.remove('selected'));o.classList.add('selected');});
+      block.appendChild(o);});
+    quizDiv.appendChild(block);
+  });
+}
+function checkQuiz(){
+  let score=0;
+  document.querySelectorAll('#quiz .quiz-q').forEach((b,idx)=>{
+    const selected=b.querySelector('.quiz-opt.selected');
+    b.querySelectorAll('.quiz-opt').forEach(o=>o.classList.remove('correct','wrong'));
+    const ci=QUIZ[idx].correct;const co=b.querySelectorAll('.quiz-opt')[ci];co.classList.add('correct');
+    if(selected){if(parseInt(selected.dataset.idx)===ci)score++;else selected.classList.add('wrong');}
+  });
+  const total=QUIZ.length;let msg='';
+  if(score===total)msg=`🏆 Perfeito! ${score}/${total} — você manda nos Ajustes de FC!`;
+  else if(score>=total*0.7)msg=`💪 Boa! ${score}/${total} — quase lá, revise os pontos que errou.`;
+  else msg=`📚 ${score}/${total} — vale revisar os módulos antes de fechar.`;
+  document.getElementById('quizScore').textContent=msg;
+}
+
+</script>
+</body>
+</html>

@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mural Colaborativo · Ajustes de FC</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="icon" href="logo_EM.png">
+</head>
+<body>
+  <div class="part-wrap">
+
+    <!-- TOPO -->
+    <header class="mural-header">
+      <div class="mural-brand">
+        <img src="logo_EM.png" alt="Estante Mágica" class="mural-logo"
+             onerror="this.outerHTML='<div class=&quot;mural-logo-fallback&quot;>📚</div>'">
+        <div class="mural-brand-text">
+          <h1>Mural Colaborativo</h1>
+          <p>Ajustes de FC</p>
+        </div>
+      </div>
+    </header>
+
+    <!-- TELA DE ENTRADA -->
+    <section id="tela-entrada">
+      <div class="entrada">
+        <h2>👋 Bem-vindo(a) ao mural</h2>
+        <p>Digite seu nome para começar a responder os blocos do encontro.</p>
+        <input type="text" id="input-nome" class="campo-nome" placeholder="Seu nome"
+               autocomplete="name" maxlength="40">
+        <button id="btn-entrar" class="btn btn-primary btn-lg">Entrar →</button>
+      </div>
+    </section>
+
+    <!-- TELA DOS BLOCOS -->
+    <section id="tela-blocos" style="display:none">
+      <div class="part-greeting">
+        <span class="ola">Olá, <b id="nome-exibido"></b> 👋</span>
+        <button id="btn-trocar" class="link-trocar">trocar nome</button>
+      </div>
+
+      <div id="blocos-container"></div>
+
+      <div class="cta-complete">
+        <h3>Obrigado pela contribuição! 💜</h3>
+        <p>Suas respostas aparecem ao vivo no telão. Pode revisar e reenviar quando quiser.</p>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Firebase SDK (compat) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <!-- Config do projeto -->
+  <script src="js/firebase-config.js"></script>
+
+  <script>
+  /* ===== Conteúdo dos 5 blocos ===== */
+  const BLOCOS = [
+    { id:0, min:"5 min",  titulo:"Aquecimento",
+      prompt:"De memória, sem consultar: quais são os 2 prazos com gordura e até quando podem ser esticados?" },
+    { id:1, min:"12 min", titulo:"Decisão às cegas",
+      prompt:"Cenário C1 — escola com materiais completos, mas compras muito baixas a 1 semana do FC. Qual é o SEU movimento? (decida antes de discutirmos)" },
+    { id:2, min:"15 min", titulo:"Caso real do time",
+      prompt:"Traga UMA escola real sua. Em qual cenário (1 a 4) ela se encaixa, quanto você esticaria e qual prazo?" },
+    { id:3, min:"10 min", titulo:"Role-play do recadinho",
+      prompt:"Escreva o recadinho que você mandaria para a gestora comunicando a extensão. Gerou urgência? Veio com plano?" },
+    { id:4, min:"8 min",  titulo:"Compromisso de saída",
+      prompt:"1 escola + 1 ajuste que você vai executar ESTA semana. Qual é, e qual a data de revisão?" }
+  ];
+
+  const COLECAO = 'mural_fc';
+  let nomeAtual = '';
+  const unsubscribes = [];
+
+  /* ===== Helpers ===== */
+  function esc(s){
+    return String(s).replace(/[&<>"']/g, c => (
+      {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]
+    ));
+  }
+
+  /* ===== Fluxo de entrada ===== */
+  const inputNome = document.getElementById('input-nome');
+  const btnEntrar = document.getElementById('btn-entrar');
+
+  function entrar(){
+    const nome = inputNome.value.trim();
+    if(!nome){ inputNome.focus(); return; }
+    nomeAtual = nome;
+    try{ localStorage.setItem('mural_fc_nome', nome); }catch(e){}
+    document.getElementById('nome-exibido').textContent = nome;
+    document.getElementById('tela-entrada').style.display = 'none';
+    document.getElementById('tela-blocos').style.display = 'block';
+    montarBlocos();
+  }
+  btnEntrar.addEventListener('click', entrar);
+  inputNome.addEventListener('keydown', e => { if(e.key === 'Enter') entrar(); });
+
+  document.getElementById('btn-trocar').addEventListener('click', () => {
+    // limpa listeners ativos para não acumular
+    while(unsubscribes.length){ const u = unsubscribes.pop(); try{ u(); }catch(e){} }
+    nomeAtual = '';
+    try{ localStorage.removeItem('mural_fc_nome'); }catch(e){}
+    document.getElementById('blocos-container').innerHTML = '';
+    document.getElementById('tela-blocos').style.display = 'none';
+    document.getElementById('tela-entrada').style.display = 'block';
+    inputNome.value = '';
+    inputNome.focus();
+  });
+
+  /* ===== Montagem dos blocos ===== */
+  function montarBlocos(){
+    const cont = document.getElementById('blocos-container');
+    cont.innerHTML = '';
+
+    BLOCOS.forEach(b => {
+      const card = document.createElement('div');
+      card.className = 'bloco-card';
+      card.innerHTML = `
+        <div class="bloco-head">
+          <span class="bloco-num">${b.id + 1}</span>
+          <h3>${esc(b.titulo)}</h3>
+          <span class="pill pill-roxo">${esc(b.min)}</span>
+        </div>
+        <p class="prompt">${esc(b.prompt)}</p>
+        <textarea class="campo-texto" id="txt-${b.id}" placeholder="Escreva sua resposta..."></textarea>
+        <div class="bloco-actions">
+          <button class="btn btn-primary" data-bloco="${b.id}">Enviar para o mural</button>
+          <span class="enviado-ok" id="ok-${b.id}">✓ enviado</span>
+        </div>
+        <div class="time-list">
+          <div class="time-list-title">Contribuições do time</div>
+          <div id="time-${b.id}"><span class="time-empty">Ainda sem respostas neste bloco.</span></div>
+        </div>
+      `;
+      cont.appendChild(card);
+
+      card.querySelector('button[data-bloco]').addEventListener('click', () => enviar(b.id));
+      escutarBloco(b.id);
+    });
+  }
+
+  /* ===== Escrita no Firestore (substitui por nome+bloco) ===== */
+  async function enviar(bloco){
+    const texto = document.getElementById('txt-' + bloco).value.trim();
+    if(!texto) return;
+    const btn = document.querySelector('button[data-bloco="' + bloco + '"]');
+    btn.disabled = true;
+
+    try{
+      const ref = db.collection(COLECAO);
+      const existentes = await ref
+        .where('bloco', '==', bloco)
+        .where('nome', '==', nomeAtual)
+        .get();
+
+      if(!existentes.empty){
+        await existentes.docs[0].ref.update({
+          texto,
+          ts: firebase.firestore.FieldValue.serverTimestamp()
+        });
+      } else {
+        await ref.add({
+          bloco,
+          nome: nomeAtual,
+          texto,
+          ts: firebase.firestore.FieldValue.serverTimestamp()
+        });
+      }
+
+      const ok = document.getElementById('ok-' + bloco);
+      ok.classList.add('show');
+      setTimeout(() => ok.classList.remove('show'), 2500);
+    }catch(err){
+      console.error('Erro ao enviar:', err);
+      alert('Não consegui enviar agora. Verifique a conexão e tente de novo.');
+    }finally{
+      btn.disabled = false;
+    }
+  }
+
+  /* ===== Leitura ao vivo das contribuições do time ===== */
+  function escutarBloco(bloco){
+    const unsub = db.collection(COLECAO)
+      .where('bloco', '==', bloco)
+      .onSnapshot(snap => {
+        const itens = [];
+        snap.forEach(d => itens.push(d.data()));
+        itens.sort((a, b) => {
+          const ta = a.ts && a.ts.seconds ? a.ts.seconds : 0;
+          const tb = b.ts && b.ts.seconds ? b.ts.seconds : 0;
+          return ta - tb;
+        });
+
+        const alvo = document.getElementById('time-' + bloco);
+        if(!alvo) return;
+        if(itens.length === 0){
+          alvo.innerHTML = '<span class="time-empty">Ainda sem respostas neste bloco.</span>';
+          return;
+        }
+        alvo.innerHTML = itens.map(x =>
+          `<div class="time-item"><span class="t-nome">${esc(x.nome)}:</span>` +
+          `<span class="t-texto">${esc(x.texto)}</span></div>`
+        ).join('');
+      }, err => console.error('Erro no snapshot do bloco ' + bloco + ':', err));
+
+    unsubscribes.push(unsub);
+  }
+
+  /* ===== Retomar sessão (nome salvo) ===== */
+  (function init(){
+    let salvo = '';
+    try{ salvo = localStorage.getItem('mural_fc_nome') || ''; }catch(e){}
+    if(salvo){
+      inputNome.value = salvo;
+      entrar();
+    } else {
+      inputNome.focus();
+    }
+  })();
+  </script>
+</body>
+</html>

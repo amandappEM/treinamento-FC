@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Telão · Mural Colaborativo · Ajustes de FC</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="icon" href="logo_EM.png">
+</head>
+<body>
+  <div class="telao-wrap">
+
+    <!-- TOPO -->
+    <header class="mural-header">
+      <div class="mural-brand">
+        <img src="logo_EM.png" alt="Estante Mágica" class="mural-logo"
+             onerror="this.outerHTML='<div class=&quot;mural-logo-fallback&quot;>📚</div>'">
+        <div class="mural-brand-text">
+          <h1>Mural Colaborativo</h1>
+          <p>Ajustes de FC</p>
+        </div>
+      </div>
+      <span class="live-badge"><span class="live-dot"></span>Atualizando ao vivo</span>
+    </header>
+
+    <!-- SELETOR DE BLOCOS -->
+    <div class="tabs" id="tabs"></div>
+
+    <!-- CARTÃO DO BLOCO ATUAL -->
+    <div class="telao-bloco-info">
+      <div class="bloco-meta">
+        <span class="bloco-pill" id="bloco-num">Bloco 1</span>
+        <span class="bloco-pill" id="bloco-min">5 min</span>
+      </div>
+      <h2 id="bloco-titulo">Aquecimento</h2>
+      <p class="prompt" id="bloco-prompt"></p>
+    </div>
+
+    <!-- BARRA: CONTADOR + LIMPAR -->
+    <div class="telao-toolbar">
+      <div class="contador">
+        <span class="contador-num" id="contador-num">0</span>
+        <span class="contador-label">contribuições</span>
+      </div>
+      <button class="btn btn-danger" id="btn-limpar">🗑️ Limpar este bloco</button>
+    </div>
+
+    <!-- GRADE DE CONTRIBUIÇÕES -->
+    <div class="contrib-grid" id="contrib-grid"></div>
+
+  </div>
+
+  <!-- Firebase SDK (compat) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <!-- Config do projeto -->
+  <script src="js/firebase-config.js"></script>
+
+  <script>
+  /* ===== Conteúdo dos 5 blocos ===== */
+  const BLOCOS = [
+    { id:0, min:"5 min",  titulo:"Aquecimento",
+      prompt:"De memória, sem consultar: quais são os 2 prazos com gordura e até quando podem ser esticados?" },
+    { id:1, min:"12 min", titulo:"Decisão às cegas",
+      prompt:"Cenário C1 — escola com materiais completos, mas compras muito baixas a 1 semana do FC. Qual é o SEU movimento? (decida antes de discutirmos)" },
+    { id:2, min:"15 min", titulo:"Caso real do time",
+      prompt:"Traga UMA escola real sua. Em qual cenário (1 a 4) ela se encaixa, quanto você esticaria e qual prazo?" },
+    { id:3, min:"10 min", titulo:"Role-play do recadinho",
+      prompt:"Escreva o recadinho que você mandaria para a gestora comunicando a extensão. Gerou urgência? Veio com plano?" },
+    { id:4, min:"8 min",  titulo:"Compromisso de saída",
+      prompt:"1 escola + 1 ajuste que você vai executar ESTA semana. Qual é, e qual a data de revisão?" }
+  ];
+
+  const COLECAO = 'mural_fc';
+  let blocoAtivo = 0;
+  let cache = {0:[], 1:[], 2:[], 3:[], 4:[]};
+
+  /* ===== Helpers ===== */
+  function esc(s){
+    return String(s).replace(/[&<>"']/g, c => (
+      {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]
+    ));
+  }
+
+  /* ===== Monta os botões dos blocos ===== */
+  function montarTabs(){
+    const tabs = document.getElementById('tabs');
+    tabs.innerHTML = '';
+    BLOCOS.forEach(b => {
+      const btn = document.createElement('button');
+      btn.className = 'tab' + (b.id === blocoAtivo ? ' active' : '');
+      btn.textContent = (b.id + 1) + '. ' + b.titulo;
+      btn.addEventListener('click', () => {
+        blocoAtivo = b.id;
+        montarTabs();
+        atualizarBlocoInfo();
+        render();
+      });
+      tabs.appendChild(btn);
+    });
+  }
+
+  /* ===== Atualiza o cartão do bloco atual ===== */
+  function atualizarBlocoInfo(){
+    const b = BLOCOS[blocoAtivo];
+    document.getElementById('bloco-num').textContent = 'Bloco ' + (b.id + 1);
+    document.getElementById('bloco-min').textContent = b.min;
+    document.getElementById('bloco-titulo').textContent = b.titulo;
+    document.getElementById('bloco-prompt').textContent = b.prompt;
+  }
+
+  /* ===== Renderiza as contribuições do bloco ativo ===== */
+  function render(){
+    const itens = cache[blocoAtivo] || [];
+    document.getElementById('contador-num').textContent = itens.length;
+
+    const grid = document.getElementById('contrib-grid');
+    if(itens.length === 0){
+      grid.innerHTML = '<div class="empty-state"><span class="icon">💬</span>' +
+        '<p>Aguardando as primeiras contribuições deste bloco...</p></div>';
+      return;
+    }
+    grid.innerHTML = itens.map(x =>
+      '<div class="contrib-card">' +
+        '<div class="nome">' + esc(x.nome) + '</div>' +
+        '<div class="texto">' + esc(x.texto) + '</div>' +
+      '</div>'
+    ).join('');
+  }
+
+  /* ===== Reconstrói o cache a partir de um snapshot ===== */
+  function preencherCache(snap){
+    cache = {0:[], 1:[], 2:[], 3:[], 4:[]};
+    snap.forEach(d => {
+      const x = d.data();
+      if(cache[x.bloco]) cache[x.bloco].push(x);
+    });
+  }
+
+  /* ===== Tempo real nativo (onSnapshot) ===== */
+  db.collection(COLECAO).orderBy('ts').onSnapshot(snap => {
+    preencherCache(snap);
+    render();
+  }, err => console.error('Erro no onSnapshot:', err));
+
+  /* ===== Fallback/garantia: polling a cada 3 segundos (pedido da cliente) ===== */
+  setInterval(async () => {
+    try{
+      const snap = await db.collection(COLECAO).orderBy('ts').get();
+      preencherCache(snap);
+      render();
+    }catch(err){
+      console.error('Erro no polling de 3s:', err);
+    }
+  }, 3000);
+
+  /* ===== Limpar este bloco (com confirmação) ===== */
+  document.getElementById('btn-limpar').addEventListener('click', async () => {
+    const b = BLOCOS[blocoAtivo];
+    const total = (cache[blocoAtivo] || []).length;
+    if(total === 0){
+      alert('Não há contribuições para limpar neste bloco.');
+      return;
+    }
+    const ok = confirm(
+      'Apagar TODAS as ' + total + ' contribuições do bloco "' +
+      b.titulo + '"?\n\nEsta ação não pode ser desfeita.'
+    );
+    if(!ok) return;
+
+    try{
+      const snap = await db.collection(COLECAO).where('bloco', '==', blocoAtivo).get();
+      const batch = db.batch();
+      snap.forEach(d => batch.delete(d.ref));
+      await batch.commit();
+      // o onSnapshot atualiza a tela sozinho
+    }catch(err){
+      console.error('Erro ao limpar bloco:', err);
+      alert('Não consegui limpar o bloco agora. Tente novamente.');
+    }
+  });
+
+  /* ===== Inicialização ===== */
+  montarTabs();
+  atualizarBlocoInfo();
+  render();
+  </script>
+</body>
+</html>
