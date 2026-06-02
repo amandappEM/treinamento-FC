@@ -174,6 +174,7 @@ function gerarRelatorio(){
   const tipo = TIPOS[r.tipoCode];
   const code = r.tipoCode + "-" + r.identidade;
   const idNome = r.identidade === "A" ? "Assertivo(a)" : "Turbulento(a)";
+  const dataStr = new Date().toLocaleDateString("pt-BR", { day:"2-digit", month:"long", year:"numeric" });
 
   try{ localStorage.setItem("ec_perfil", JSON.stringify({nome, code, qp:r.qp, top:r.topSab.map(s=>s.key), data:Date.now()})); }catch(e){}
 
@@ -207,10 +208,23 @@ function gerarRelatorio(){
 
   $("tela-relatorio").innerHTML = `
     <div class="report-head">
+      <div class="report-brand">
+        <img src="logo_EM.png" alt="Estante Mágica" class="report-logo"
+             onerror="this.outerHTML='<div class=&quot;report-logo-fb&quot;>📚</div>'">
+        <div class="report-brand-meta">
+          <strong>Embarque Continuado</strong>
+          <span>Relatório de Autoconhecimento</span>
+        </div>
+      </div>
       <div class="tipo-emoji">${tipo.emoji}</div>
       <div class="code">${code}</div>
       <h2>${tipo.nome}</h2>
-      <div class="tag-linha">${nome} · ${tipo.tag}</div>
+      <div class="tag-linha">${tipo.tag}</div>
+      <div class="report-meta">
+        <span>👤 <strong>${nome}</strong></span>
+        <span>🧑‍💼 Líder: <strong>${gestor || "—"}</strong></span>
+        <span>📅 ${dataStr}</span>
+      </div>
     </div>
 
     <div class="report-actions no-print">
